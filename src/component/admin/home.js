@@ -177,7 +177,7 @@ const Home = () => {
       {/* Modal for adding/editing a row */}
       <Modal
         title={editingRow === null ? 'Add New Row' : 'Edit Row'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         okText="Save"
