@@ -38,6 +38,7 @@
     ]
   },
   "devDependencies": {
+    "prettier": "^3.4.2",
     "web-vitals": "^4.2.4"
   }
 }
