@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Input, Form, Card, message, Flex, Typography } from 'antd';
-import { redirect } from 'react-router-dom';
+
 
 const { Title, Text } = Typography;
 
@@ -14,8 +14,7 @@ const Login = ({ onLogin }) => {
 
     try {
 
-      //onLogin(true)  // remove this in production
-
+      
       const response = await fetch('https://apps.mediasoft.ru/flask/test/login', {
         method: 'POST',
         headers: {
@@ -34,21 +33,18 @@ const Login = ({ onLogin }) => {
 
       // Optional: Parse response if needed
       const data = await response.json();
-      
 
       console.log('Login successful:', data);
 
       // Notify the parent component about the login
+      // FIXME: Тут ошибка  функция onLogin определена в app.js однако когда app.js вызывает onlogin она передает результаты в login.js 
       
       onLogin(true, data.role);
-
-
       message.success('Login successful!');
+      
     } catch (error) {
-
       console.error('Error during login:', error);
       message.error(error.message || 'Login failed.');
-
     } finally {
       setLoading(false);
     }

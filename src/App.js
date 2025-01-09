@@ -20,6 +20,7 @@ const App = () => {
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   } else {
+    
     console.log('Logged in as : ', role);
   }
 
@@ -47,7 +48,10 @@ const App = () => {
         />
 
         {/* If neither /admin nor /user matches */}
-        {/* <Route path="*" element={<Navigate to="/login2" />} /> */}
+        <Route path="/" element={<Navigate to={role} />} />
+        <Route path="/login" element={<Login/>} />
+        <Route path="*" element={<Navigate to="/login"/>} />
+
       </Routes>
     </Router>
   );
