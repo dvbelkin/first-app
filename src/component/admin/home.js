@@ -9,11 +9,15 @@ import {
   DatePicker,
   Space,
   Popconfirm,
+  message,
 } from 'antd';
 import moment from 'moment';
 
 // Ant Design icons
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { fetchBase, fetchPersonal, fetchProjects } from '../api';
+import DataForm from '../inputDataForm'; // Импортируем новый компонент формы
+import { format } from 'prettier';
 
 const { Option } = Select;
 
@@ -21,7 +25,11 @@ const Home = () => {
   const [data, setData] = useState([]); // Start with empty array
   const [editingRow, setEditingRow] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [formValues, setFormValues] = useState({
+
+  const [project, setProject] = useState([]); // Start with empty array
+  const [personal, setPersonal] = useState([]); // Start with empty array
+
+  const nullValueForm = {
     key: null,
     name: '',
     debit: 0,
@@ -29,42 +37,39 @@ const Home = () => {
     project: '',
     date: '',
     description: '',
-  });
+  };
+
+  const [formValues, setFormValues] = useState(nullValueForm); // Start with empty array
 
   // 1. Fetch data from server when component mounts
   useEffect(() => {
-    fetch('https://apps.mediasoft.ru/flask/test/base', {
-      method: 'GET',
-      credentials: 'include', // <-- очень важно
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((jsonData) => {
-        // Suppose the server returns an array of objects
-        // Each object should have fields like: { key, name, debit, credit, ... }
-        setData(jsonData);
-      })
+    fetchBase()
+      .then((data) => setData(data))
       .catch((err) => {
-        console.error('Fetch error:', err);
+        console.error(err);
+        message.error('Ошибка при загрузке списка  основных данных');
+      });
+
+    fetchPersonal()
+      .then((data) => setPersonal(data))
+      .catch((err) => {
+        console.error(err);
+        message.error('Ошибка при загрузке списка персонала');
+      });
+
+    // Получение списка проектов
+    fetchProjects()
+      .then((data) => setProject(data))
+      .catch((err) => {
+        console.error(err);
+        message.error('Ошибка при загрузке списка проектов');
       });
   }, []);
 
   // ---- Actions ----
   const onNewRow = () => {
     setEditingRow(null);
-    setFormValues({
-      key: null,
-      name: '',
-      debit: 0,
-      credit: 0,
-      project: '',
-      date: '',
-      description: '',
-    });
+    setFormValues(nullValueForm);
     setIsModalVisible(true);
   };
 
@@ -84,6 +89,7 @@ const Home = () => {
 
   const onDeleteRow = (key) => {
     setData((prevData) => prevData.filter((item) => item.key !== key));
+    message.success('Запись удалена');
   };
 
   // ---- Modal form field changes ----
@@ -100,6 +106,7 @@ const Home = () => {
       setData((prevData) => [...prevData, newRow]);
     } else {
       // Updating an existing row
+      console.log('Updating!!!!!!!!!!!!!!');
       setData((prevData) =>
         prevData.map((item) =>
           item.key === editingRow
@@ -107,6 +114,7 @@ const Home = () => {
             : item
         )
       );
+      message.success('Запись обновлена');
     }
     setIsModalVisible(false);
   };
@@ -118,16 +126,16 @@ const Home = () => {
   // ---- Table Columns ----
   const columns = [
     {
-      title: 'Action',
+      title: 'Действия',
       key: 'action',
       render: (_, record) => (
         <Space>
           <Button icon={<EditOutlined />} onClick={() => onEditRow(record)} />
           <Popconfirm
-            title="Are you sure to delete this row?"
+            title="Вы согласны удалить эту строку?"
             onConfirm={() => onDeleteRow(record.key)}
-            okText="Yes"
-            cancelText="No"
+            okText="Да"
+            cancelText="Нет"
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
@@ -135,32 +143,42 @@ const Home = () => {
       ),
     },
     {
-      title: 'Name',
+      title: 'Имя',
       dataIndex: 'name',
       key: 'name',
+      filters: personal,
+      onFilter: (value, record) => record.name === value,
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-      title: 'Debit (руб.)',
+      title: 'Приход (руб.)',
       dataIndex: 'debit',
       key: 'debit',
+      sorter: (a, b) => a.debit - b.debit,
     },
     {
-      title: 'Credit (руб.)',
+      title: 'Оплата (руб.)',
       dataIndex: 'credit',
       key: 'credit',
+      sorter: (a, b) => a.debit - b.debit,
     },
     {
-      title: 'Project',
+      title: 'Проект',
       dataIndex: 'project',
       key: 'project',
+      filters: project,
+      onFilter: (value, record) => record.project === value,
+      sorter: (a, b) => a.project.localeCompare(b.project),
     },
     {
-      title: 'Date',
+      title: 'Дата операции',
       dataIndex: 'date',
       key: 'date',
+      render: (text) => moment(text).format('YYYY-MM-DD'),
+      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
     },
     {
-      title: 'Description',
+      title: 'Подробности',
       dataIndex: 'description',
       key: 'description',
     },
@@ -172,77 +190,33 @@ const Home = () => {
         New Row
       </Button>
 
-      <Table columns={columns} dataSource={data} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        onHeaderRow={() => {
+          <Button
+            type="primary"
+            onClick={onNewRow}
+            style={{ marginBottom: 16 }}
+          >
+            New Row
+          </Button>;
+        }}
+      />
 
-      {/* Modal for adding/editing a row */}
+      {/* Modal с формой */}
+
       <Modal
         title={editingRow === null ? 'Add New Row' : 'Edit Row'}
         open={isModalVisible}
-        onOk={handleOk}
+        footer={null} // Переходим на форму с собственными кнопками
         onCancel={handleCancel}
-        okText="Save"
       >
-        <div style={{ marginBottom: 16 }}>
-          <label>Name:</label>
-          <Input
-            value={formValues.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-          />
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label>Debit (руб.):</label>
-          <InputNumber
-            min={0}
-            style={{ width: '100%' }}
-            value={formValues.debit}
-            onChange={(value) => handleInputChange('debit', value)}
-          />
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label>Credit (руб.):</label>
-          <InputNumber
-            min={0}
-            style={{ width: '100%' }}
-            value={formValues.credit}
-            onChange={(value) => handleInputChange('credit', value)}
-          />
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label>Project:</label>
-          <Select
-            style={{ width: '100%' }}
-            placeholder="Select a project"
-            value={formValues.project}
-            onChange={(value) => handleInputChange('project', value)}
-          >
-            <Option value="Project A">Project A</Option>
-            <Option value="Project B">Project B</Option>
-            <Option value="Project C">Project C</Option>
-          </Select>
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label>Date:</label>
-          <DatePicker
-            style={{ width: '100%' }}
-            value={
-              formValues.date ? moment(formValues.date, 'YYYY-MM-DD') : null
-            }
-            onChange={(dateObj, dateStr) => handleInputChange('date', dateStr)}
-          />
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label>Description:</label>
-          <Input.TextArea
-            rows={3}
-            value={formValues.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-          />
-        </div>
+        <DataForm
+          initialValues={formValues}
+          onSubmit={handleOk}
+          onCancel={handleCancel}
+        />
       </Modal>
     </div>
   );
