@@ -79,7 +79,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
     // Преобразование даты в нужный формат, если необходимо
     const formattedValues = {
       ...values,
-      date: values.date ? values.date.format('YYYY-MMM-DD') : null,
+      date: values.date ? dayjs(values.date) : null,
     };
 
     onSubmit(formattedValues);

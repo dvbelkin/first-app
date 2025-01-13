@@ -4,13 +4,12 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
-  Outlet,
   Link,
   useNavigate,
 } from 'react-router-dom';
 import Home from './home';
 import Help from '../help';
+import Statistics from './statistics';
 
 const items = [
   {
@@ -36,23 +35,24 @@ const items = [
     key: 'home',
   },
   {
-    label: <Link to="/admin/about">About</Link>,
-    key: 'about',
+    label: <Link to="/admin/statistics">Статистика</Link>,
+    key: 'statistics',
   },
-  {
-    label: 'Services',
-    key: 'services',
-    children: [
-      {
-        label: 'Service A',
-        key: 'service-a',
-      },
-      {
-        label: 'Service B',
-        key: 'service-b',
-      },
-    ],
-  },
+
+  // {
+  //   label: 'Services',
+  //   key: 'services',
+  //   children: [
+  //     {
+  //       label: 'Service A',
+  //       key: 'service-a',
+  //     },
+  //     {
+  //       label: 'Service B',
+  //       key: 'service-b',
+  //     },
+  //   ],
+  // },
   {
     label: <Link to="/admin/help">Help</Link>,
     key: 'help',
@@ -94,13 +94,14 @@ const AdminMenu = () => {
       {/* Nested routes under /admin/* */}
       <Routes>
         {/* Index route (i.e., /admin) */}
-        <Route path="/" index element={<Home />} />
 
+        <Route path="/" index element={<Home />} />
+        <Route path="statistics" index element={<Statistics />} />
         {/* /admin/help */}
         <Route path="/help" element={<Help />} />
 
         {/* Catch-all for anything else under /admin/ */}
-        <Route path="*" element={<div>Admin Page Not Found</div>} />
+        <Route path="*" element={<div>Admin Page Not Found!!!</div>} />
       </Routes>
     </>
   );

@@ -29,7 +29,7 @@ const Home = () => {
     debit: 0,
     credit: 0,
     project: '',
-    date: null,
+    date: dayjs(),
     description: '',
   };
 
@@ -62,7 +62,6 @@ const Home = () => {
 
   // ---- Actions ----
   const onNewRow = () => {
-    console.log('onNewRow');
     setEditingRow(null);
     setFormValues(nullValueForm);
     setIsModalVisible(true);
