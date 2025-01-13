@@ -12,7 +12,14 @@ import {
 } from 'antd';
 import { fetchPersonal, fetchProjects } from './api'; // Предполагаем, что у вас есть API-функции для получения данных
 
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat'; // Плагин для локализованного формата
+import 'dayjs/locale/ru'; // Импорт локали (например, русский)
+
 const { Option } = Select;
+
+dayjs.extend(localizedFormat);
+dayjs.locale('ru'); // Установка локали
 
 const DataForm = ({ initialValues, onSubmit, onCancel }) => {
   const [form] = Form.useForm();
@@ -40,6 +47,12 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
       });
   }, []);
 
+  useEffect(() => {
+    if (initialValues) {
+      form.setFieldsValue(initialValues);
+    }
+  }, [initialValues]);
+
   const handleDebitChange = (value) => {
     setIsDebitFilled(!!value);
     if (value) {
@@ -66,7 +79,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
     // Преобразование даты в нужный формат, если необходимо
     const formattedValues = {
       ...values,
-      date: values.date ? values.date.format('YYYY-MM-DD') : '',
+      date: values.date ? values.date.format('YYYY-MMM-DD') : null,
     };
 
     onSubmit(formattedValues);
@@ -75,14 +88,9 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={initialValues}
-      onFinish={onFinish}
-    >
+    <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item
-        label="Name"
+        label="ФИО"
         name="name"
         rules={[{ required: true, message: 'Пожалуйста, введите имя' }]}
       >
@@ -112,7 +120,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
       </Form.Item>
 
       <Form.Item
-        label="Project"
+        label="Проект"
         name="project"
         rules={[{ required: true, message: 'Пожалуйста, выберите проект' }]}
       >
@@ -141,7 +149,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
         </Select>
       </Form.Item>
 
-      <Form.Item label="Debit (руб.)" name="debit">
+      <Form.Item label="Получено (руб.)" name="debit">
         <InputNumber
           min={0}
           style={{ width: '100%' }}
@@ -150,7 +158,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
         />
       </Form.Item>
 
-      <Form.Item label="Credit (руб.)" name="credit">
+      <Form.Item label="Потрачено (руб.)" name="credit">
         <InputNumber
           min={0}
           style={{ width: '100%' }}
@@ -160,7 +168,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
       </Form.Item>
 
       <Form.Item
-        label="Date"
+        label="Дата"
         name="date"
         rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
       >
@@ -168,7 +176,7 @@ const DataForm = ({ initialValues, onSubmit, onCancel }) => {
       </Form.Item>
 
       <Form.Item
-        label="Description"
+        label="Описание операции"
         name="description"
         rules={[{ required: true, message: 'Пожалуйста, введите описание' }]}
       >

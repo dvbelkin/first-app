@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Table,
-  Button,
-  Modal,
-  Input,
-  InputNumber,
-  Select,
-  DatePicker,
-  Space,
-  Popconfirm,
-  message,
-} from 'antd';
-import moment from 'moment';
+import { Table, Button, Modal, Select, Space, Popconfirm, message } from 'antd';
+
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat'; // Плагин для локализованного формата
+import 'dayjs/locale/ru'; // Импорт локали (например, русский)
 
 // Ant Design icons
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fetchBase, fetchPersonal, fetchProjects } from '../api';
 import DataForm from '../inputDataForm'; // Импортируем новый компонент формы
-import { format } from 'prettier';
+
+dayjs.extend(localizedFormat);
+dayjs.locale('ru'); // Установка локали
 
 const { Option } = Select;
 
@@ -35,7 +29,7 @@ const Home = () => {
     debit: 0,
     credit: 0,
     project: '',
-    date: '',
+    date: null,
     description: '',
   };
 
@@ -68,6 +62,7 @@ const Home = () => {
 
   // ---- Actions ----
   const onNewRow = () => {
+    console.log('onNewRow');
     setEditingRow(null);
     setFormValues(nullValueForm);
     setIsModalVisible(true);
@@ -75,15 +70,19 @@ const Home = () => {
 
   const onEditRow = (record) => {
     setEditingRow(record.key);
-    setFormValues({
+
+    const updatedValues = {
       key: record.key,
       name: record.name,
       debit: record.debit,
       credit: record.credit,
       project: record.project,
-      date: record.date,
+      date: record.date ? dayjs(record.date) : null,
       description: record.description,
-    });
+    };
+
+    setFormValues(updatedValues);
+
     setIsModalVisible(true);
   };
 
@@ -97,29 +96,30 @@ const Home = () => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleOk = () => {
+  const handleOk = (updatedValues) => {
     if (editingRow === null) {
-      // Creating a new row
-      // Generate a unique key if needed
-      const newKey = data.length ? data[data.length - 1].key + 1 : 1;
-      const newRow = { key: newKey, ...formValues };
-      setData((prevData) => [...prevData, newRow]);
+      // Добавление новой записи
+      const newRow = { key: Date.now(), ...updatedValues }; // Уникальный ключ
+      setData((prevData) => [...prevData, newRow]); // Добавляем новую строку
+      message.success('Новая запись добавлена.');
     } else {
-      // Updating an existing row
-      console.log('Updating!!!!!!!!!!!!!!');
+      // Обновление существующей записи
       setData((prevData) =>
         prevData.map((item) =>
-          item.key === editingRow
-            ? { ...item, ...formValues, key: editingRow }
-            : item
+          item.key === editingRow ? { ...item, ...updatedValues } : item
         )
       );
-      message.success('Запись обновлена');
+      message.success('Запись обновлена.');
     }
+
+    // Закрываем модальное окно
     setIsModalVisible(false);
+    setEditingRow(null); // Сбрасываем редактируемую строку
+    setFormValues(nullValueForm); // Сбрасываем значения формы
   };
 
   const handleCancel = () => {
+    setFormValues(nullValueForm);
     setIsModalVisible(false);
   };
 
@@ -174,8 +174,8 @@ const Home = () => {
       title: 'Дата операции',
       dataIndex: 'date',
       key: 'date',
-      render: (text) => moment(text).format('YYYY-MM-DD'),
-      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+      render: (text) => dayjs(text).format('YYYY-MMM-DD'),
+      sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix(),
     },
     {
       title: 'Подробности',
@@ -187,27 +187,17 @@ const Home = () => {
   return (
     <div style={{ padding: 20 }}>
       <Button type="primary" onClick={onNewRow} style={{ marginBottom: 16 }}>
-        New Row
+        Новый
       </Button>
 
-      <Table
-        columns={columns}
-        dataSource={data}
-        onHeaderRow={() => {
-          <Button
-            type="primary"
-            onClick={onNewRow}
-            style={{ marginBottom: 16 }}
-          >
-            New Row
-          </Button>;
-        }}
-      />
+      <Table columns={columns} dataSource={data} />
 
       {/* Modal с формой */}
 
       <Modal
-        title={editingRow === null ? 'Add New Row' : 'Edit Row'}
+        title={
+          editingRow === null ? 'Добавить новую строку' : 'Редактировать строку'
+        }
         open={isModalVisible}
         footer={null} // Переходим на форму с собственными кнопками
         onCancel={handleCancel}

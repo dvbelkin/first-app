@@ -11,20 +11,18 @@ const Help = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  
+
   return (
     <>
       <Modal
         title="Help"
         open={isModalVisible}
-        // visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[
           <Button key="ok" type="primary" onClick={handleOk}>
             OK
           </Button>,
-          
         ]}
       >
         <p>Welcome to the Help section!</p>
