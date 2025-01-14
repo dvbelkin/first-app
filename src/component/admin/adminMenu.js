@@ -17,7 +17,7 @@ const items = [
     // Place the logo as a 'label' node (often you'd disable it if you don't want it clickable)
     label: (
       <img
-        src="/logo_MS.gif"
+        src={`${process.env.PUBLIC_URL}/logo_MS.gif`}
         alt="Logo"
         style={{
           height: 28,

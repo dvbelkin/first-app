@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from 'react-router-dom';
 
 import Login from './component/login';
 import UserMenu from './component/users/userMenu';
 import AdminMenu from './component/admin/adminMenu';
-import Home from './component/home';
 import Help from './component/help';
 
 const App = () => {
@@ -20,43 +25,49 @@ const App = () => {
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   } else {
-    
     console.log('Logged in as : ', role);
   }
 
   return (
-    <Router>
+    <Router basename="/flask">
       <Routes>
-        {/* /admin/* */}
+        {/* Главная страница */}
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to={
+                role === 'admin'
+                  ? '/admin'
+                  : role === 'user'
+                    ? '/user'
+                    : '/login'
+              }
+            />
+          }
+        />
+
+        {/* Админский интерфейс */}
         <Route
           path="/admin/*"
-          element={
-            role === 'admin'
-              ? <AdminMenu />
-              : <Navigate to="/login" />
-          }
+          element={role === 'admin' ? <AdminMenu /> : <Navigate to="/login" />}
         />
 
-        {/* /user/* */}
+        {/* Пользовательский интерфейс */}
         <Route
           path="/user/*"
-          element={
-            role === 'user'
-              ? <UserMenu />
-              : <Navigate to="/login" />
-          }
+          element={role === 'user' ? <UserMenu /> : <Navigate to="/login" />}
         />
 
-        {/* If neither /admin nor /user matches */}
-        <Route path="/" element={<Navigate to={role} />} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="*" element={<Navigate to="/login"/>} />
+        {/* Дополнительные маршруты */}
+        <Route path="/help" element={<Help />} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
+        {/* Fallback для неопределённых маршрутов */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );
 };
-
-
 
 export default App;
