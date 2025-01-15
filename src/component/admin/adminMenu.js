@@ -79,8 +79,6 @@ const AdminMenu = () => {
         <Button
           type="primary"
           style={{ marginRight: 10, marginTop: 4, height: 30 }}
-          // TODO: wefwe
-
           // FIXME: Здесь конечно нужно добавть типа стереть кукисы с acsess_token
           // FIXME: Также нужно добавить проверку токена на актуальность и перенаправлять на страницу авторизации, если он просрочен
           // FIXME: Ну и отправлять кудато не сюда

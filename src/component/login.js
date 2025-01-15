@@ -34,9 +34,6 @@ const Login = ({ onLogin }) => {
 
       console.log('Login successful:', data);
 
-      // Notify the parent component about the login
-      // FIXME: Тут ошибка  функция onLogin определена в app.js однако когда app.js вызывает onlogin она передает результаты в login.js
-
       onLogin(true, data.role);
       message.success('Login successful!');
     } catch (error) {
